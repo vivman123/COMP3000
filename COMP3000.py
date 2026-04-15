@@ -6,20 +6,25 @@ import torch.optim as optim
 import torchvision.models as models
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split    
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 from PIL import Image
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
+import random
+import cv2
+from pytorch_grad_cam import GradCAM
+from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
+from pytorch_grad_cam.utils.image import show_cam_on_image
 
 # 1. Setup paths
 MAPPING_CSV = 'gz2_filename_mapping.csv'
-HART16_CSV = 'gz2_hart16 (1).csv'
+HART16_CSV = 'gz2_hart16.csv'
 IMAGE_DIR = 'images_gz2/images'
 
-# Use Mac GPU if available
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+# Use GPU if available
+device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
 print(f"Using device: {device}")
 
 # 2. Load and clean data
@@ -88,9 +93,20 @@ train_paths, val_paths, train_labels, val_labels = train_test_split(
 # 4. Augment images
 # Training gets random rotations
 train_transform = transforms.Compose([
+    transforms.CenterCrop(200),
+    transforms.Resize((224, 224)), 
+    transforms.RandomRotation(180),                  
+    transforms.RandomHorizontalFlip(),                 
+    transforms.ColorJitter(brightness=0.2, contrast=0.2), 
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    transforms.RandomErasing(p=0.5, scale=(0.02, 0.2), ratio=(0.3, 3.3), value=0)
+])
+
+# Validation/Test stays original
+val_test_transform = transforms.Compose([
+    transforms.CenterCrop(200),
     transforms.Resize((224, 224)),
-    transforms.RandomRotation(180),
-    transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -115,10 +131,16 @@ train_loader = DataLoader(GalaxyDataset(train_paths, train_labels, train_transfo
 val_loader = DataLoader(GalaxyDataset(val_paths, val_labels, val_test_transform), batch_size=32)
 test_loader = DataLoader(GalaxyDataset(test_paths, test_labels, val_test_transform), batch_size=32)
 
-# 5. Build the model
-print("Loading ResNet18...")
-model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-model.fc = nn.Linear(model.fc.in_features, 3)
+# 5. Build the model with a dropout layer to prevent overconfidence
+print("Loading ResNet50 with Dropout...")
+model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+
+# replace the final layer but add a Dropout layer before it
+num_ftrs = model.fc.in_features
+model.fc = nn.Sequential(
+    nn.Dropout(0.5), 
+    nn.Linear(num_ftrs, 3)
+)
 model = model.to(device)
 
 # Training settings
@@ -126,7 +148,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # 6. Training loop
-NUM_EPOCHS = 10
+NUM_EPOCHS = 30
 print(f"\nTraining on {device}...")
 
 for epoch in range(NUM_EPOCHS):
@@ -189,3 +211,5 @@ disp.plot(cmap=plt.cm.Blues)
 plt.title("Confusion Matrix")
 plt.savefig('galaxy_results.png')
 print("Saved galaxy_results.png")
+
+torch.save(model.state_dict(), 'galaxy_model.pth')
