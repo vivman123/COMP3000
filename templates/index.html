@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<style>
+  body { background: #0f172a; color: #f8fafc; font-family: system-ui, sans-serif; display: flex; justify-content: center; padding: 2rem; }
+  .app { max-width: 800px; width: 100%; text-align: center; }
+  .drop { border: 2px dashed #334155; padding: 3rem; border-radius: 1rem; background: #1e293b; cursor: pointer; transition: 0.2s; margin: 1rem 0; color: #94a3b8; }
+  .drop:hover { border-color: #3b82f6; background: #1e293b88; color: #fff; }
+  button { background: #3b82f6; color: white; border: none; padding: 0.8rem 2.5rem; border-radius: 0.5rem; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 1rem; }
+  button:hover { background: #2563eb; transform: translateY(-2px); }
+  #g { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
+  .card { background: #1e293b; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3); }
+  .card img { width: 100%; border-radius: 0.5rem; margin-bottom: 0.5rem; }
+  .badge { color: #10b981; font-weight: 800; font-size: 1.2em; text-transform: uppercase; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <h1>Galaxy Classifier</h1>
+    <h3>Upload multiple galaxy images to classify them as Spiral, Elliptical, or Irregular.</h3>
+    <div class="drop" onclick="f.click()">Paste image, Drag & Drop, or Click here</div>
+    <input type="file" id="f" multiple hidden onchange="h(this.files)">
+    <button onclick="u()" id="b">Classify Batch</button>
+    <div id="g"></div>
+  </div>
+
+    <script>
+        let files = [];
+        const h = (fs) => {
+            files = [...fs];
+            g.innerHTML = files.map(f => `<div class="c">Pending: ${f.name}</div>`).join('');
+        };
+
+        // Handle Paste
+        window.onpaste = (e) => {
+            const items = [...e.clipboardData.items].filter(i => i.type.includes('image')).map(i => i.getAsFile());
+            if (items.length) h(items);
+        };
+
+        // Handle Drag & Drop
+        window.ondragover = (e) => e.preventDefault();
+        window.ondrop = (e) => { e.preventDefault(); h(e.dataTransfer.files); };
+
+        async function u() {
+            if (!files.length) return;
+            b.innerText = "Analyzing...";
+            let fd = new FormData();
+            files.forEach(f => fd.append('files', f));
+            
+            const res = await fetch('/predict', { method: 'POST', body: fd });
+            const data = await res.json();
+            
+            g.innerHTML = data.results.map(r => `
+                <div style="border:1px solid #444; padding:10px">
+                    <img src="data:image/jpeg;base64,${r.image}" width="200"><br>
+                    <b>${r.prediction}</b> (${r.confidence})
+                </div>`).join('');
+            b.innerText = "Classify";
+        }
+    </script>
+</body>
+</html>
