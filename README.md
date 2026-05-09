@@ -28,4 +28,4 @@ grad-cam
 
 # Setup
 To run the Webapp Create a venv enviroment, install the requirements.txt file requirements, then run the app.py file ensuring there is a pth file for the web app to use. 
-To run the training model follow the same steps however run the COMP3000.py file
+To run the training model follow the same steps however run the COMP3000.py file and ensure you've downloaded the GZ2 Dataset from Kaggle (https://www.kaggle.com/datasets/jaimetrickz/galaxy-zoo-2-images) including the csv's for filename mapping etc
