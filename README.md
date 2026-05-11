@@ -1,31 +1,65 @@
-# COMP3000
-
-# Vivek Raval
-# Student ID: 10774366
 # Galaxy Morphological Classifier
 
-# Project Vision:
-A deep learning pipeline that can accurately classify galaxy morphologies (Spiral, Elliptical, Irregular) based on the Galaxy Zoo 2 dataset. The project will fill the gap between training and practical applications through a Flask web app that integrates visual explanation techniques (Grad-CAM) to deliver clear and accurate astronomical predictions.
+**Course:** COMP3000 Project  
+**Author:** Vivek Raval  
+**Student ID:** 10774366  
 
-# Repository Structure:
-The folder structure for COMP3000 Computing Project.
-1. 'COMP3001.py' - PyTorch script for training the model. Data from the Galaxy Zoo 2 dataset is used for model training with a balanced dataset, augmented data, and dropout layer for regularisation.
-2. 'app.py' - Flask web application that hosts the trained model. The application provides an inference pipeline with standardised image resizing based on the GZ2 424px to 200px crop strategy. The application also employs PyTorch Grad-CAM for generating visual heatmaps of the models’ predictions. This is also includes the HTML file 'index.html' for the handling of the file uploads.
-   
-# Libraries and open source tools used: 
-python 3.13
-torch
-torchvision
-pandas
-scikit-learn
-tqdm
-Pillow
-numpy
-flask
-matplotlib
-opencv-python
-grad-cam
+---
 
-# Setup
-To run the Webapp Create a venv enviroment, install the requirements.txt file requirements, then run the app.py file ensuring there is a pth file for the web app to use. 
-To run the training model follow the same steps however run the COMP3000.py file and ensure you've downloaded the GZ2 Dataset from Kaggle (https://www.kaggle.com/datasets/jaimetrickz/galaxy-zoo-2-images) including the csv's for filename mapping etc
+## Project Vision
+
+A deep learning pipeline designed to accurately classify galaxy morphologies (Spiral, Elliptical, Irregular) using the **Galaxy Zoo 2 (GZ2)** dataset. This project bridges the gap between model training and practical application through a Flask web application. It integrates visual explanation techniques, specifically **Grad-CAM**, to deliver clear, interpretable, and accurate astronomical predictions.
+
+## Repository Structure
+
+* `COMP3000.py`  
+  PyTorch script for training the model. It utilizes data from the Galaxy Zoo 2 dataset for model training, featuring a balanced dataset, data augmentation, and dropout layers for regularization.
+* `app.py`  
+  The Flask web application that hosts the trained model. It also employs PyTorch Grad-CAM to generate visual heatmaps of the model's predictions.
+* `templates/index.html`  
+  The front-end HTML interface handling user file uploads for the web application.
+
+## Tech Stack & Libraries
+
+* **Language:** Python 3.13
+* **Machine Learning:** PyTorch (`torch`, `torchvision`), Scikit-Learn
+* **Data Processing & Visualization:** Pandas, NumPy, Matplotlib, OpenCV (`opencv-python`), Pillow, Grad-CAM
+* **Web Framework:** Flask
+* **Utilities:** tqdm
+
+## Setup & Installation
+
+### 1. Environment Setup
+First, clone the repository and set up a virtual environment:
+```bash
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install the required dependencies
+pip install -r requirements.txt
+```
+### 2. Running the Web Application
+Ensure you have a trained model file (.pth) available in the root directory for the web app to use.
+
+```bash
+# Start the Local Flask server
+python app.py
+```
+### 3. Training the Model
+If you want to train the model from scratch, you must first download the dataset.
+
+Download the GZ2 Dataset from Kaggle: [Galaxy Zoo 2 Images](https://www.kaggle.com/datasets/jaimetrickz/galaxy-zoo-2-images).
+
+Ensure you extract the images and the CSV files (for filename mapping) into the correct data directory as specified in the script.
+
+Run the training script:
+
+```bash
+python COMP3000.py
+```
