@@ -89,11 +89,16 @@ def predict():
             # encode back to base64 so frontend can render it directly
             buf = io.BytesIO()
             Image.fromarray(vis).save(buf, format="JPEG")
+            # keep original image for reference
+            img_orig_uint8 = (img_np * 255).astype(np.uint8)
+            buf_orig = io.BytesIO()
+            Image.fromarray(img_orig_uint8).save(buf_orig, format="JPEG")
             
             results.append({
                 'prediction': label,
                 'confidence': f"{conf.item() * 100:.2f}%",
-                'image': base64.b64encode(buf.getvalue()).decode('utf-8')
+                'image': base64.b64encode(buf.getvalue()).decode('utf-8'),
+                'image_orig': base64.b64encode(buf_orig.getvalue()).decode('utf-8')
             })
         except Exception as e:
             results.append({'error': str(e)})

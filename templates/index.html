@@ -25,38 +25,59 @@
   </div>
 
     <script>
-        let files = [];
-        const h = (fs) => {
-            files = [...fs];
-            g.innerHTML = files.map(f => `<div class="c">Pending: ${f.name}</div>`).join('');
-        };
+            let files = [];
+            const h = (fs) => {
+                files = [...fs];
+                g.innerHTML = files.map(f => `<div class="c" style="color: #94a3b8;">Pending: ${f.name}</div>`).join('');
+            };
 
-        // Handle Paste
-        window.onpaste = (e) => {
-            const items = [...e.clipboardData.items].filter(i => i.type.includes('image')).map(i => i.getAsFile());
-            if (items.length) h(items);
-        };
+            // Handle Paste
+            window.onpaste = (e) => {
+                const items = [...e.clipboardData.items].filter(i => i.type.includes('image')).map(i => i.getAsFile());
+                if (items.length) h(items);
+            };
 
-        // Handle Drag & Drop
-        window.ondragover = (e) => e.preventDefault();
-        window.ondrop = (e) => { e.preventDefault(); h(e.dataTransfer.files); };
+            // Handle Drag & Drop
+            window.ondragover = (e) => e.preventDefault();
+            window.ondrop = (e) => { e.preventDefault(); h(e.dataTransfer.files); };
 
-        async function u() {
-            if (!files.length) return;
-            b.innerText = "Analyzing...";
-            let fd = new FormData();
-            files.forEach(f => fd.append('files', f));
-            
-            const res = await fetch('/predict', { method: 'POST', body: fd });
-            const data = await res.json();
-            
-            g.innerHTML = data.results.map(r => `
-                <div style="border:1px solid #444; padding:10px">
-                    <img src="data:image/jpeg;base64,${r.image}" width="200"><br>
-                    <b>${r.prediction}</b> (${r.confidence})
-                </div>`).join('');
-            b.innerText = "Classify";
-        }
-    </script>
+            // toggle function for the eye button
+            function toggleView(idx) {
+                const img = document.getElementById(`img-${idx}`);
+                
+                if (img.src === img.dataset.orig) {
+                    img.src = img.dataset.cam;
+                } else {
+                    img.src = img.dataset.orig;
+                }
+            }
+
+            async function u() {
+                if (!files.length) return;
+                b.innerText = "Analyzing...";
+                let fd = new FormData();
+                files.forEach(f => fd.append('files', f));
+                
+                const res = await fetch('/predict', { method: 'POST', body: fd });
+                const data = await res.json();
+
+                g.innerHTML = data.results.map((r, i) => `
+                    <div class="card" style="position: relative;">
+                        <img id="img-${i}" 
+                            src="data:image/jpeg;base64,${r.image_orig}" 
+                            data-orig="data:image/jpeg;base64,${r.image_orig}" 
+                            data-cam="data:image/jpeg;base64,${r.image}">
+                        
+                        <button onclick="toggleView(${i})" title="Toggle Grad-CAM"
+                                style="position: absolute; top: 1.5rem; right: 1.5rem; background: #0f172aee; padding: 0.5rem; border-radius: 50%; min-width: auto; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                            👁️
+                        </button>
+                        
+                        <div class="badge" style="margin-top: 0.5rem;">${r.prediction}</div>
+                        <div style="color: #94a3b8; font-size: 0.9em;">Confidence: ${r.confidence}</div>
+                    </div>`).join('');
+                b.innerText = "Classify Batch";
+            }
+        </script>
 </body>
 </html>
