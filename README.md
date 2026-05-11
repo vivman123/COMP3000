@@ -63,3 +63,10 @@ Run the training script:
 ```bash
 python COMP3000.py
 ```
+# License
+
+This project is licensed under the **MIT License**. This applies only to the code and web application developed in this repository.
+
+**Dataset:** The galaxy images and classifications used to train this model are from the **Galaxy Zoo 2** project. 
+* **Original Data:** The imagery originates from the **Sloan Digital Sky Survey (SDSS)**.
+* **Credits:** Willett, K. W., et al. (2013). *Galaxy Zoo 2: detailed morphological classifications for 304,122 galaxies from the Sloan Digital Sky Survey*. Monthly Notices of the Royal Astronomical Society.
